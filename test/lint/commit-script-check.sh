@@ -23,7 +23,8 @@ PREV_HEAD=`git rev-parse HEAD`
 for commit in `git rev-list --reverse $1`; do
     if git rev-list -n 1 --pretty="%s" $commit | grep -q "^scripted-diff:"; then
         git checkout --quiet $commit^ || exit
-        SCRIPT="`git rev-list --format=%b -n1 $commit | sed '/^-BEGIN VERIFY SCRIPT-$/,/^-END VERIFY SCRIPT-$/{//!b};d'`"
+        # sed command explained: https://stackoverflow.com/a/27816249/1117929
+        SCRIPT="`git rev-list --format=%B -n1 $commit | sed -n '/-BEGIN VERIFY SCRIPT-/,/-END VERIFY SCRIPT-/ { /-BEGIN VERIFY SCRIPT-/n ; /-END VERIFY SCRIPT-/ !p ; }'`"
         if test "x$SCRIPT" = "x"; then
             echo "Error: missing script for: $commit"
             echo "Failed"
